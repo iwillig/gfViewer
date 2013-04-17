@@ -9,6 +9,12 @@
             title: 'This is a map title'
         }
     }),
+        olMap = new OpenLayers.Map({
+            div: 'ol-map',
+            layers: [
+                new OpenLayers.Layer.OSM()
+            ]
+        }),
         DataSet = Backbone.Model.extend({}),
         DataSetList = Backbone.Collection.extend({
             model: DataSet
@@ -52,14 +58,13 @@
 
             initialize: function () {
                 this.ul = this.$el.find('ul#local-layers');
-                this.listenTo(Layers, 'add', this.render);
+                this.collection.bind('add', this.render, this);
             },
 
             render: function () {
                 var self = this;
                 self.ul.empty();
-
-                Layers.each(function (layer) {
+                this.collection.each(function (layer) {
                     var view = new LayerElement({model: layer});
                     self.ul.append(view.render().$el);
                 });
@@ -94,13 +99,10 @@
         }),
         AddLayerView = Backbone.View.extend({});
 
-/* 
 
-*/
 
     $(function () {
-        var olMap = $("#ol-map").height(window.innerHeight),
-            styleSelector,
+        var styleSelector,
             editor = CodeMirror.fromTextArea(document.getElementById("code"), {
                 lineNumbers: true,
                 matchBrackets: true,
@@ -111,17 +113,18 @@
                     if (evt.type === 'keypress') {
                         style = styleSelector.getActiveStyle();
                         if (style) {
-                            console.log(style.get('name'));
                             style.set('body', editor.getValue());
                         }
                     }
                 }
 
             }),
-
             layerTree = new LayerTree({
-                collection: Layers
+                collection: Layers,
+                olMap: olMap
             });
+
+        $("ol-map").height(window.innerHeight);
 
         styleSelector = new StyleSelector({
             collection: Styles,
