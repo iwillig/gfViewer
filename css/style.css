@@ -1,0 +1,46 @@
+
+/* The default bootstrap control have a strict notion of width, we
+don't want that in the layer tree */
+
+.control-label2 { 
+    float: left;
+//    width: 160px;
+    padding-top: 5px;
+    text-align: right;
+}
+
+#ol-map { 
+    background: #eee;
+}
+
+#layer-tree-wrapper {
+    position:absolute;
+    padding: 5px;
+    right: 10px;
+    top: 50px;
+    background: #fff;
+}
+#layer-tree {
+    width: 600px;
+}
+#layer-tree ul {
+    margin: 0px 0px 0px 0px;
+}
+#layer-tree input { margin: 0px 0px 0px 0px; }
+
+#layer-tree li { 
+    border-top: 1px solid #eee;
+    padding: 5px;
+    list-style: none;
+}
+#layer-tree li a {
+    margin-top: 10px;
+    padding-left: 10px;
+}
+#layer-tree li .metadata-form {
+    padding: 10px;
+}
+
+#editor-wrapper {
+
+}

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title></title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link href="components/bootstrap/css/bootstrap.min.css"
+        rel="stylesheet" media="screen">
+
+  <link href="components/codemirror/lib/codemirror.css"
+        rel="stylesheet" media="screen">
+ 
+  <link rel="stylesheet" href="components/codemirror/theme/twilight.css">
+
+  <link href="css/style.css"
+        rel="stylesheet" media="screen">
+
+
+</head>
+<body>
+
+  <div id="ol-map">
+    <div class="container-fluid">
+      <div class="row-fluid">
+
+        <div class="navbar navbar-inverse navbar-fixed-top">
+          <div class="navbar-inner">
+            <a class="brand" href="#"></a>
+          </div>
+        </div>
+      </div>
+
+  <div id="layer-tree-wrapper">
+
+      <button id="" class="btn">Add Layer</button>
+
+    <div id="layer-tree">
+      <ul id="local-layers"></ul>
+      <ul id="remote-layers"></ul>
+
+      <div id="editor-wrapper">
+        <div class="row-fluid">
+          <div class="span2">
+            <button id="newStyle" class="btn">New Style</button>
+          </div>
+
+          <div class="span2" id="style-selector">
+          </div>
+
+        </div>
+
+        <div>
+          <textarea id="code"></textarea>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  </div>
+
+
+  <script src="components/jquery/jquery.min.js"></script>
+  <script src="components/underscore/underscore-min.js"></script>
+  <script src="components/backbone/backbone-min.js"></script>
+  <script src="components/bootstrap/js/bootstrap.min.js"></script>
+  <script src="components/openlayers/OpenLayers.js"></script>
+
+
+  <script src="components/codemirror/lib/codemirror.js"></script>
+  <script src="components/codemirror/mode/yaml/yaml.js"></script>
+
+  <script id="layerTreeTemplate" type="text/template">
+    <div>
+      <input class="toggle-view-p" type="checkbox" />
+      <a href="#"><%= name %></a>
+      <i class="icon-asterisk show-metadata"></i>
+    </div>
+  </script>
+
+  <script id="styleSelectorTemplate" type="text/template">
+
+    <select>
+      <option>-----</option>
+    <% _.each(styles, function (style) { %>
+         <option data-name="<%= style.name %>"><%= style.name %></option>
+    <% }); %>
+    </select>
+
+  </script>
+
+  <script src="src/gfViewer.js"></script>
+
+</body>
+</html>
