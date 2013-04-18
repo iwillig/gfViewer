@@ -72,7 +72,7 @@
 
   <script id="layerTreeTemplate" type="text/template">
     <div>
-      <input class="toggle-view-p" type="checkbox" />
+      <input class="toggle-view-p" <%= visible ? 'checked' : '' %> type="checkbox" />
       <a href="#"><%= name %></a>
       <i class="icon-asterisk show-metadata"></i>
     </div>

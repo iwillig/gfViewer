@@ -51,6 +51,13 @@
                 console.log(this.model);
             },
             toggleMapView: function () {
+                var visible = this.model.get('visible');
+                console.log(visible);
+                if (visible) {
+                    this.model.set('visible', false);
+                } else {
+                    this.model.set('visible', true);
+                }
 
             },
             render: function () {
@@ -174,7 +181,7 @@
 
         $('#newStyle').click(function (evnt) {
             Styles.add({name: 'Random style' + Date.now(),
-                       body: 'more content'});
+                       body: '#more content'});
         });
 
         Styles.add([
@@ -193,11 +200,13 @@
         Layers.add([
             {
                 id: 1,
-                name: 'Planet Line OSM'
+                name: 'Planet Line OSM',
+                visible: true
             },
             {
                 id: 2,
-                name: 'A great layer'
+                name: 'A great layer',
+                visible: false
             }
         ]);
 
