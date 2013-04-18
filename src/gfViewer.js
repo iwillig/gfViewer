@@ -3,6 +3,7 @@
 
 (function ($) {
     'use strict';
+    $("#ol-map").height(window.innerHeight);
 
     var Map = Backbone.Model.extend({
         defaults: {
@@ -11,6 +12,10 @@
     }),
         olMap = new OpenLayers.Map({
             div: 'ol-map',
+            allOverlays: true,
+            controls: [
+                new OpenLayers.Control.Navigation()
+            ],
             layers: [
                 new OpenLayers.Layer.OSM()
             ]
@@ -97,12 +102,32 @@
                 return this;
             }
         }),
+        ZoomLevelInfo = Backbone.View.extend({
+            el: '#zoom-info',
+            initialize: function () {
+                var self = this;
+                this.options.olMap.events.on({
+                    'move': function () {
+                        self.render();
+                    }
+                });
+            },
+            render: function () {
+                this.$el.html(this.options.olMap.getZoom());
+                return this;
+            }
+        }),
         AddLayerView = Backbone.View.extend({});
-
-
 
     $(function () {
         var styleSelector,
+            setMapCenter = function (olMap) {
+                var hash = window.location.hash,
+                    parts = hash.replace('#', '').split('/');
+                parts = _.map(parts, function (p) { return +p; });
+
+                olMap.setCenter([parts[1], parts[2]], parts[0]);
+            },
             editor = CodeMirror.fromTextArea(document.getElementById("code"), {
                 lineNumbers: true,
                 matchBrackets: true,
@@ -119,12 +144,28 @@
                 }
 
             }),
+            info = new ZoomLevelInfo({
+                olMap: olMap
+            }),
             layerTree = new LayerTree({
                 collection: Layers,
                 olMap: olMap
             });
 
-        $("ol-map").height(window.innerHeight);
+
+
+        olMap.events.on({
+            'move': function (evt) {
+                var m = evt.object,
+                    zoom = m.getZoom(),
+                    center = m.getCenter();
+                window.location.hash = '#' + zoom + '/' +
+                    center.lon + '/' + center.lat;
+            }
+        });
+
+        setMapCenter(olMap);
+
 
         styleSelector = new StyleSelector({
             collection: Styles,
@@ -145,7 +186,7 @@
             {
                 id: 2,
                 name: 'style two',
-                body: 'This is some content'
+                body: '# An comment in yaml'
             }
         ]);
 
