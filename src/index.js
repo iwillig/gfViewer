@@ -5,11 +5,7 @@
     'use strict';
     $("#ol-map").height(window.innerHeight);
 
-    var Map = Backbone.Model.extend({
-        defaults: {
-            title: 'This is a map title'
-        }
-    }),
+    var MapConfig = Backbone.Model.extend({}),
         olMap = new OpenLayers.Map({
             div: 'ol-map',
             allOverlays: true,
@@ -20,6 +16,21 @@
                 new OpenLayers.Layer.OSM()
             ]
         }),
+        smashList = function (list) {
+            return _.reduce(
+                list,
+                function (a, f) {
+                    a[f.name] = f.value;
+                    return a;
+                },
+                {}
+            );
+        },
+        updateModelviaForm = function () {
+            var fields = this.$el.find('form').serializeArray();
+            this.model.set(smashList(fields));
+            this.remove();
+        },
         DataSet = Backbone.Model.extend({}),
         DataSetList = Backbone.Collection.extend({
             model: DataSet
@@ -28,12 +39,35 @@
         StyleList = Backbone.Collection.extend({
             model: Style,
         }),
-        Styles = new StyleList(),
         Layer = Backbone.Model.extend({}),
         LayerList = Backbone.Collection.extend({
             model: Layer
         }),
+        // make some global instances of these models and collections
+        Styles = new StyleList(),
         Layers = new LayerList(),
+        Map    = new MapConfig(),
+        LayerEditWidget = Backbone.View.extend({
+            tagName: 'div',
+            className: 'modal',
+            template: _.template($('#layerEditTemplate').html()),
+            events: {
+                'click #close': 'remove',
+                'click #delete': 'delete',
+                'click #update': updateModelviaForm
+            },
+            delete: function () {
+                Layers.remove(this.model);
+                this.remove();
+            },
+            render: function () {
+                this.$el.html(this.template({
+                    layer: this.model.toJSON(),
+                    styles: Styles.toJSON()
+                }));
+                return this;
+            }
+        }),
         LayerElement = Backbone.View.extend({
             tagName: 'li',
             template: _.template($('#layerTreeTemplate').html()),
@@ -48,11 +82,14 @@
                 this.listenTo(this.model, 'change', this.render);
             },
             updateLayer: function () {
-                console.log(this.model);
+                var editWidget = new LayerEditWidget({
+                    model: this.model
+                }).render();
+                $('body').append(editWidget.$el);
             },
             toggleMapView: function () {
                 var visible = this.model.get('visible');
-                console.log(visible);
+
                 if (visible) {
                     this.model.set('visible', false);
                 } else {
@@ -71,6 +108,7 @@
             initialize: function () {
                 this.ul = this.$el.find('ul#local-layers');
                 this.collection.bind('add', this.render, this);
+                this.collection.bind('remove', this.render, this);
             },
 
             render: function () {
@@ -109,10 +147,13 @@
                 return this;
             }
         }),
-        ZoomLevelInfo = Backbone.View.extend({
-            el: '#zoom-info',
+        MapInfo = Backbone.View.extend({
+            el: '#map-info',
+            template: _.template($('#mapInfoTemplate').html()),
+
             initialize: function () {
                 var self = this;
+                this.model.bind('change', this.render, this);
                 this.options.olMap.events.on({
                     'move': function () {
                         self.render();
@@ -120,8 +161,43 @@
                 });
             },
             render: function () {
-                this.$el.html(this.options.olMap.getZoom());
+                this.$el.html(this.template({
+                    zoom: this.options.olMap.getZoom(),
+                    title: this.model.get('title')
+                }));
                 return this;
+            }
+        }),
+
+        EditPropertiesWidget = Backbone.View.extend({
+            tagName: 'div',
+            className: 'modal',
+            template: _.template($('#edit-properties-template').html()),
+            events: {
+                'click #close': 'remove',
+                'click #save': updateModelviaForm
+            },
+            render: function () {
+                this.$el.html(this.template(this.model.toJSON()));
+                $('body').append(this.$el);
+                return this;
+            }
+        }),
+
+        MapToolBar = Backbone.View.extend({
+            el: '#map-tool-bar',
+            events: {
+                'click #map-properties': 'showMapProperities',
+                'click #add-layer': 'addLayer'
+            },
+            showMapProperities: function () {
+                var edit = new EditPropertiesWidget({
+                    model: this.model
+                });
+                edit.render();
+            },
+            addLayer: function () {
+                console.log('hello');
             }
         }),
         AddLayerView = Backbone.View.extend({});
@@ -139,7 +215,7 @@
                 lineNumbers: true,
                 matchBrackets: true,
                 theme: "twilight",
-                mode: "text/x-yaml",
+                mode: "text/x-css",
                 onKeyEvent: function (editor, evt) {
                     var style;
                     if (evt.type === 'keypress') {
@@ -151,8 +227,12 @@
                 }
 
             }),
-            info = new ZoomLevelInfo({
+            info = new MapInfo({
+                model: Map,
                 olMap: olMap
+            }),
+            mapToolBar = new MapToolBar({
+                model: Map
             }),
             layerTree = new LayerTree({
                 collection: Layers,
@@ -180,8 +260,17 @@
         });
 
         $('#newStyle').click(function (evnt) {
-            Styles.add({name: 'Random style' + Date.now(),
-                       body: '#more content'});
+            Styles.add({
+                name: 'Random style' + Date.now(),
+                body: '#more content'
+            });
+        });
+
+        Map.set({
+            title: 'Test map',
+            about: 'This is a test map',
+            bgcolor: '#fff',
+            projection: 'EPSG:900913'
         });
 
         Styles.add([
@@ -201,11 +290,15 @@
             {
                 id: 1,
                 name: 'Planet Line OSM',
+                style: 1,
+                about: 'This is an about text that concerns the layer',
                 visible: true
             },
             {
                 id: 2,
-                name: 'A great layer',
+                style: 'style one',
+                name: 'test name',
+                about: 'This is an about text for this file',
                 visible: false
             }
         ]);

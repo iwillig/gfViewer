@@ -30,10 +30,14 @@
         </div>
       </div>
 
-      <div id="zoom-info"></div>
+      <div id="map-info"></div>
 
       <div id="layer-tree-wrapper">
-        <button id="" class="btn">Add Layer</button>
+
+        <div id="map-tool-bar">
+          <button id="map-properties" class="btn">Map Properties</button>
+          <button id="add-layer" class="btn">Add Layer</button>
+        </div>
 
         <div id="layer-tree">
           <ul id="local-layers"></ul>
@@ -70,13 +74,131 @@
   <script src="components/codemirror/lib/codemirror.js"></script>
   <script src="components/codemirror/mode/yaml/yaml.js"></script>
 
+  <script id="mapInfoTemplate" type="text/template">
+    <div>
+      <p>Map title: <%= title %></p>
+      <p>Zoom level: <%= zoom %></p>
+    </div>
+  </script>
+
+  <script id="edit-properties-template" type="text/template">
+
+    <div class="modal-body">
+
+      <form class="form-horizontal">
+
+        <div class="control-group">
+          <label class="control-label">Title</label>
+          <div class="controls">
+            <input type="text"
+                   name="title" 
+                   value="<%= title %>">
+          </div>
+        </div>
+
+
+        <div class="control-group">
+          <label class="control-label">About</label>
+          <div class="controls">
+            <textarea name="about"><%= about %></textarea>
+          </div>
+        </div>
+
+
+        <div class="control-group">
+          <label class="control-label">Projection</label>
+          <div class="controls">
+            <input type="text" 
+                   name="projection" 
+                   value="<%= projection %>">
+          </div>
+        </div>
+
+        <div class="control-group">
+          <label class="control-label">Background color</label>
+          <div class="controls">
+            <input type="color" 
+                   name="bgcolor"
+                   value="<%= bgcolor %>">
+          </div>
+        </div>
+
+
+      </form>
+
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn" id="save">Save map</button>
+      <button class="btn" id="close">Close</button>
+    </div>
+  </script>
+
+
+
+
+
+  <script id="layerEditTemplate" type="text/template">
+    <div class="modal-body">
+
+      <form class="form-horizontal">
+
+        <div class="control-group">
+          <label class="control-label">Layer name</label>
+          <div class="controls">
+            <input type="text" name="name" value="<%= layer.name %>" />
+          </div>
+        </div>
+
+        <div class="control-group">
+
+          <div class="control-label">
+            <label class="control-label">About layer</label>
+            <div class="controls">
+              <textarea name="about"><%= layer.about %></textarea>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="control-group">
+          <label class="control-label">Select layer's style</label>
+          <div class="controls">
+
+            <select name="style">
+              <% _.each(styles, function (style) { %>
+                  <% if (layer.style === style.name) { %>
+                  <option value="<%= style.name %>" selected><%= style.name %></option>
+                  <% } else { %>
+                  <option value="<%= style.name %>"><%= style.name %></option>
+                  <%} %>
+              <% }); %>
+            </select>
+
+          </div>
+        </div>
+
+      </form>
+    </div>
+    <div class="modal-footer">
+      <a href="#" id="delete" class="btn">Delete</a>
+      <a href="#" id="update" class="btn">Update</a>
+      <a href="#" id="close" class="btn">Close</a>
+    </div>
+  </script>
+
+
+
+
   <script id="layerTreeTemplate" type="text/template">
     <div>
       <input class="toggle-view-p" <%= visible ? 'checked' : '' %> type="checkbox" />
-      <a href="#"><%= name %></a>
-      <i class="icon-asterisk show-metadata"></i>
+      <a class="show-metadata" href="#"><%= name %></a>
     </div>
   </script>
+
+
+
 
   <script id="styleSelectorTemplate" type="text/template">
 
@@ -89,7 +211,7 @@
 
   </script>
 
-  <script src="src/gfViewer.js"></script>
+  <script src="src/index.js"></script>
 
 </body>
 </html>
