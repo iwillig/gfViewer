@@ -17,8 +17,8 @@ don't want that in the layer tree */
     z-index: 1000;
     position:absolute;
     padding: 5px;
-    right: 10px;
-    top: 50px;
+    right: 0px;
+    border-left: 1px solid #000;
     background: #fff;
 }
 #layer-tree {
@@ -29,7 +29,7 @@ don't want that in the layer tree */
 }
 #layer-tree input { margin: 0px 0px 0px 0px; }
 
-#layer-tree li { 
+#layer-tree li.layer-element { 
     border-top: 1px solid #eee;
     padding: 5px;
     list-style: none;

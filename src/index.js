@@ -44,9 +44,10 @@
             model: Layer
         }),
         // make some global instances of these models and collections
-        Styles = new StyleList(),
-        Layers = new LayerList(),
-        Map    = new MapConfig(),
+        Datasets = new DataSetList(),
+        Styles   = new StyleList(),
+        Layers   = new LayerList(),
+        Map      = new MapConfig(),
         LayerEditWidget = Backbone.View.extend({
             tagName: 'div',
             className: 'modal',
@@ -71,7 +72,7 @@
         LayerElement = Backbone.View.extend({
             tagName: 'li',
             template: _.template($('#layerTreeTemplate').html()),
-            className: 'layer-tree',
+            className: 'layer-element',
 
             events: {
                 'click .show-metadata': 'updateLayer',
@@ -147,10 +148,43 @@
                 return this;
             }
         }),
+
+        EditPropertiesWidget = Backbone.View.extend({
+            tagName: 'div',
+            className: 'modal',
+            template: _.template($('#edit-properties-template').html()),
+            events: {
+                'click #close': 'remove',
+                'click #save': updateModelviaForm
+            },
+            render: function () {
+                this.$el.html(this.template(this.model.toJSON()));
+                $('body').append(this.$el);
+                return this;
+            }
+        }),
+
         MapInfo = Backbone.View.extend({
             el: '#map-info',
             template: _.template($('#mapInfoTemplate').html()),
+            events: {
+                'click #map-properties' : 'properties',
+                'click #zoom-in': 'zoomIn',
+                'click #zoom-out': 'zoomOut'
+            },
+            zoomIn: function () {
+                this.options.olMap.zoomIn();
+            },
+            zoomOut: function () {
+                this.options.olMap.zoomOut();
+            },
+            properties: function () {
+                var edit = new EditPropertiesWidget({
+                    model: this.model
+                });
+                edit.render();
 
+            },
             initialize: function () {
                 var self = this;
                 this.model.bind('change', this.render, this);
@@ -169,21 +203,32 @@
             }
         }),
 
-        EditPropertiesWidget = Backbone.View.extend({
+        AddLayerWidget = Backbone.View.extend({
             tagName: 'div',
             className: 'modal',
-            template: _.template($('#edit-properties-template').html()),
+            template: _.template($('#add-layer-info').html()),
             events: {
                 'click #close': 'remove',
-                'click #save': updateModelviaForm
+                'click #add': 'addToMap',
+                'click #search': 'search'
+            },
+            search: function () {
+                console.log('search');
+            },
+            addToMap: function () {
+                console.log('add layer to Map');
             },
             render: function () {
-                this.$el.html(this.template(this.model.toJSON()));
+                this.$el.html(this.template({
+                    datasets: this.options.datasets.toJSON(),
+                    styles: this.options.styles.toJSON()
+                }));
                 $('body').append(this.$el);
-                return this;
             }
         }),
-
+        StyleEditor = Backbone.View.extend({
+            tagName: 'div'
+        }),
         MapToolBar = Backbone.View.extend({
             el: '#map-tool-bar',
             events: {
@@ -191,16 +236,12 @@
                 'click #add-layer': 'addLayer'
             },
             showMapProperities: function () {
-                var edit = new EditPropertiesWidget({
-                    model: this.model
-                });
-                edit.render();
             },
             addLayer: function () {
-                console.log('hello');
+
             }
-        }),
-        AddLayerView = Backbone.View.extend({});
+
+        });
 
     $(function () {
         var styleSelector,
@@ -211,22 +252,24 @@
 
                 olMap.setCenter([parts[1], parts[2]], parts[0]);
             },
-            editor = CodeMirror.fromTextArea(document.getElementById("code"), {
-                lineNumbers: true,
-                matchBrackets: true,
-                theme: "twilight",
-                mode: "text/x-css",
-                onKeyEvent: function (editor, evt) {
-                    var style;
-                    if (evt.type === 'keypress') {
-                        style = styleSelector.getActiveStyle();
-                        if (style) {
-                            style.set('body', editor.getValue());
-                        }
-                    }
-                }
 
-            }),
+            // editor = CodeMirror.fromTextArea(document.getElementById("code"), {
+            //     lineNumbers: true,
+            //     matchBrackets: true,
+            //     theme: "twilight",
+            //     mode: "text/x-yaml",
+            //     onKeyEvent: function (editor, evt) {
+            //         var style;
+            //         if (evt.type === 'keypress') {
+            //             style = styleSelector.getActiveStyle();
+            //             if (style) {
+            //                 style.set('body', editor.getValue());
+            //             }
+            //         }
+            //     }
+
+            // }),
+
             info = new MapInfo({
                 model: Map,
                 olMap: olMap
@@ -237,8 +280,32 @@
             layerTree = new LayerTree({
                 collection: Layers,
                 olMap: olMap
-            });
+            }),
+            setSideBar = function () {
+                var sideBar = $('#layer-tree-wrapper'),
+                    header  = $('#header');
 
+                sideBar.css('top', header.height());
+                // add extra value to subtract from overall height of
+                // sidebar. this is a magic number find out why 10
+                // seems to work
+                sideBar.height($(window).height() - header.height() - 10);
+            };
+
+        setSideBar();
+
+        $('#add-layer').click(function () {
+            new AddLayerWidget({
+                datasets: Datasets,
+                styles: Styles
+            }).render();
+        });
+
+        $(window).resize(function () {
+            $("#ol-map").height(window.innerHeight);
+            setSideBar();
+
+        });
 
 
         olMap.events.on({
@@ -256,7 +323,7 @@
 
         styleSelector = new StyleSelector({
             collection: Styles,
-            editor: editor
+//            editor: editor
         });
 
         $('#newStyle').click(function (evnt) {
@@ -266,12 +333,23 @@
             });
         });
 
+        $('#hide-side-bar').click(function () {
+            $('#layer-tree-wrapper').toggle();
+        });
+
         Map.set({
             title: 'Test map',
             about: 'This is a test map',
             bgcolor: '#fff',
             projection: 'EPSG:900913'
         });
+
+        Datasets.add([
+            {
+                name: 'Counties'
+            }
+        ]);
+
 
         Styles.add([
             {
