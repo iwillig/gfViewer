@@ -100,11 +100,28 @@
             },
             render: function () {
                 this.$el.html(this.template(this.model.toJSON()));
+                this.$el.data('name', this.model.get('name'));
                 return this;
             }
         }),
         LayerTree = Backbone.View.extend({
             el: '#layer-tree',
+
+            events: {
+//                'dragstart div': 'dragStart',
+//                'dragend div': 'dragEnd'
+            },
+
+            dragEnd: function (evt) {
+                var name = $(evt.currentTarget);
+                console.log('drag end');
+                console.log(name.data('name'));
+            },
+            dragStart: function (evt) {
+                var name = $(evt.currentTarget);
+                console.log('drag start');
+                console.log(name.data('name'));
+            },
 
             initialize: function () {
                 this.ul = this.$el.find('ul#local-layers');
@@ -210,13 +227,24 @@
             events: {
                 'click #close': 'remove',
                 'click #add': 'addToMap',
-                'click #search': 'search'
+                'click #search': 'search',
+                'click li.dataset-element': 'addToMap'
             },
             search: function () {
                 console.log('search');
             },
-            addToMap: function () {
-                console.log('add layer to Map');
+            addToMap: function (evt) {
+                var eln = $(evt.currentTarget),
+                    id   = eln.data('id'),
+                    name = eln.data('name');
+
+                this.options.layers.add({
+                    name: name,
+                    style: 1, // hard code for now
+                    about: '',
+                    visible: true // when you add a layer you always
+                    // want to see it. 
+                });
             },
             render: function () {
                 this.$el.html(this.template({
@@ -233,7 +261,7 @@
             el: '#map-tool-bar',
             events: {
                 'click #map-properties': 'showMapProperities',
-                'click #add-layer': 'addLayer'
+                'click #add-layer': 'addLayer',
             },
             showMapProperities: function () {
             },
@@ -290,17 +318,31 @@
                 // sidebar. this is a magic number find out why 10
                 // seems to work
                 sideBar.height($(window).height() - header.height() - 10);
-            };
+            },
+            layerTreeWrapper = $('#layer-tree-wrapper'),
+            showSideBar = $('#show-side-bar').hide();
 
-        setSideBar();
+        $('#hide-side-bar').click(function () {
+            layerTreeWrapper.hide();
+            showSideBar.show();
+        });
+
+        showSideBar.click(function () {
+            layerTreeWrapper.show();
+            showSideBar.hide();
+        });
+
 
         $('#add-layer').click(function () {
             new AddLayerWidget({
+                layers: Layers,
                 datasets: Datasets,
                 styles: Styles
             }).render();
         });
 
+        // set and resize the side bar. TODO make this into a class
+        setSideBar();
         $(window).resize(function () {
             $("#ol-map").height(window.innerHeight);
             setSideBar();
@@ -331,10 +373,6 @@
                 name: 'Random style' + Date.now(),
                 body: '#more content'
             });
-        });
-
-        $('#hide-side-bar').click(function () {
-            $('#layer-tree-wrapper').toggle();
         });
 
         Map.set({

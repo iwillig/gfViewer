@@ -1,18 +1,17 @@
 
-/* The default bootstrap control have a strict notion of width, we
-don't want that in the layer tree */
-
-.control-label2 { 
-    float: left;
-//    width: 160px;
-    padding-top: 5px;
-    text-align: right;
-}
 
 #ol-map { 
     background: #eee;
 }
 
+#show-side-bar {
+    padding: 5px;
+    position: absolute;
+    z-index: 10000;
+    top: 42px;
+    right: 0px;
+    background: yellow;
+}
 #layer-tree-wrapper {
     z-index: 1000;
     position:absolute;

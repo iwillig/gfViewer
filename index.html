@@ -20,17 +20,26 @@
 <body>
 
   <div id="ol-map">
-    <div class="container-fluid">
-      <div class="row-fluid">
 
-        <div id="header" class="navbar navbar-inverse navbar-fixed-top">
-          <div class="navbar-inner">
-            <a class="brand" href="#"></a>
+    <div class="container-fluid">
+
+      <div id="header" class="navbar navbar-inverse
+                              navbar-fixed-top">
+
+        <div class="navbar-inner">
+          <div class="container">
+            <div class="row">
+
+              <a class="brand" href="#">Mapstory</a>
+            </div>
           </div>
         </div>
       </div>
 
+
       <div id="map-info"></div>
+
+      <div id="show-side-bar"><a>Show Layers</a></div>
 
       <div id="layer-tree-wrapper">
 
@@ -38,7 +47,7 @@
         </div>
 
         <div id="layer-tree">
-          <a id="hide-side-bar"> >> </a>
+          <a id="hide-side-bar">Hide Layers</a>
           <h3>Current Layers</h3>
           <ul id="local-layers"></ul>
           <ul id="remote-layers"></ul>
@@ -260,7 +269,8 @@
 
 
   <script id="layerTreeTemplate" type="text/template">
-    <div>
+    <div draggable="true"
+         ondragstart="event.dataTransfer.setData('text/plain', 'This text may be dragged')">
       <input class="toggle-view-p" <%= visible ? 'checked' : '' %> type="checkbox" />
       <a class="show-metadata" href="#"><%= name %></a>
     </div>
